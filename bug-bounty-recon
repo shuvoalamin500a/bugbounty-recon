@@ -1,30 +1,3 @@
 #!/bin/bash
-
-domain=$1
-output_dir=$domain-recon
-
-mkdir -p $output_dir
-
-echo "[+] Finding subdomains..."
-subfinder -d $domain -silent > $output_dir/subs.txt
-amass enum -passive -d $domain >> $output_dir/subs.txt
-cat $output_dir/subs.txt | sort -u > $output_dir/all_subs.txt
-
-echo "[+] Checking live subdomains..."
-cat $output_dir/all_subs.txt | httpx -silent > $output_dir/live_subs.txt
-
-echo "[+] Collecting URLs from Wayback and gau..."
-cat $output_dir/live_subs.txt | gau > $output_dir/gau.txt
-cat $output_dir/live_subs.txt | waybackurls >> $output_dir/wayback.txt
-cat $output_dir/gau.txt $output_dir/wayback.txt | sort -u > $output_dir/all_urls.txt
-
-echo "[+] Filtering URLs with parameters..."
-cat $output_dir/all_urls.txt | grep "=" > $output_dir/param_urls.txt
-
-echo "[+] Finding XSS using Dalfox..."
-cat $output_dir/param_urls.txt | dalfox pipe --deep-domxss -o $output_dir/xss_results.txt
-
-echo "[+] Running Nuclei on live subdomains..."
-nuclei -l $output_dir/live_subs.txt -o $output_dir/nuclei_results.txt
-
-echo "[+] Recon done! Check the $output_dir folder."
+echo "[+] Launching Fast Port Scan [+]"
+naabu -l ~/scripts/target/domains.txt -v -p - -exclude-ports 80,443 -json -o ~/scripts/target/subdomain_ip
